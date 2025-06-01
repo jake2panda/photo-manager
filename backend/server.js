@@ -12,6 +12,8 @@ const app = express();
 const dbName = process.env.MONGODB_NAME;
 const collectionName = process.env.MONGODB_COLLECTION;
 
+const regex = /^([^-]+-[^-]+)/;
+
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -87,9 +89,9 @@ app.post("/api/auth/signin", async (req, res) => {
 app.post("/api/upload", upload.array("photos"), (req, res) => {
   try {
     const uploadedFiles = req.files.map((file) => ({
-      id: Date.now() + Math.random(),
+      id: file.filename.match(regex)[1],
       filename: file.filename,
-      originalName: file.originalname,
+      originalName: file.filename,
       path: `uploads/${file.filename}`,
       size: Math.round(file.size / 1024) + " KB",
       uploadDate: new Date().toLocaleDateString(),
@@ -102,7 +104,6 @@ app.post("/api/upload", upload.array("photos"), (req, res) => {
 
 app.get("/api/images", (req, res) => {
   const files = fs.readdirSync(uploadsDir);
-  console.log("files: ", files);
   const protocol =
     req.headers["x-forwarded-proto"] || (req.secure ? "https" : "http");
   const host = req.headers["x-forwarded-host"] || req.get("host");
@@ -113,7 +114,7 @@ app.get("/api/images", (req, res) => {
       const stats = fs.statSync(filePath);
 
       return {
-        id: file,
+        id: file.match(regex)[1],
         filename: file,
         originalName: file,
         serverURL: protocol + "://" + host,
@@ -123,7 +124,7 @@ app.get("/api/images", (req, res) => {
       };
     });
 
-  console.log("photos : ", imageFiles);
+  // console.log("photos : ", imageFiles);
   res.json({ success: true, images: imageFiles });
 });
 
@@ -151,18 +152,45 @@ app.get("/api/images", (req, res) => {
 //     res.status(500).json({ success: false, message: error.message });
 //   }
 // });
-
-app.delete("/api/photos/:filename", (req, res) => {
+//
+function deleteFile(filePath) {
   try {
-    const filename = req.params.filename;
-    const filePath = path.join(uploadsDir, filename);
+    fs.unlinkSync(filePath);
+    console.log(`Deleted: ${filePath}`);
+    return true;
+  } catch (err) {
+    console.error("Error deleting file:", err);
+    return false;
+  }
+}
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      res.json({ success: true, message: "Photo deleted successfully" });
+app.delete("/api/photos/:id", (req, res) => {
+  try {
+    const id = req.params.id;
+    const files = fs.readdirSync(uploadsDir);
+    const matchedFileName = files.find((file) => file.includes(id));
+    const filePath = path.join(uploadsDir, matchedFileName);
+    const dres = deleteFile(filePath);
+
+    if (dres) {
+      res
+        .status(200)
+        .json({ success: true, message: "Photo deleted successfully" });
     } else {
-      res.status(404).json({ success: false, message: "Photo not found" });
+      res
+        .status(1000)
+        .json({ success: false, message: "Unable to delete file" });
     }
+
+    // const filename =
+    // const filePath = path.join(uploadsDir, filename);
+
+    // if (fs.existsSync(filePath)) {
+    //   fs.unlinkSync(filePath);
+    //   res.json({ success: true, message: "Photo deleted successfully" });
+    // } else {
+    //   res.status(404).json({ success: false, message: "Photo not found" });
+    // }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

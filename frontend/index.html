@@ -277,6 +277,7 @@
                         />
                         <br />
                         <button class="btn" onclick="login()">Login</button>
+                        <div id="logout_mess"></div>
                     </div>
                 </div>
 
@@ -396,40 +397,11 @@
                 } else {
                     showStatus("Invalid credentials!", "error");
                 }
-
-                // const username = document.getElementById("username").value;
-                // const password = document.getElementById("password").value;
-
-                // if (users[username] && users[username].password === password) {
-                //     currentUser = username;
-                //     isAdmin = users[username].role === "admin";
-
-                //     document
-                //         .getElementById("authSection")
-                //         .classList.add("hidden");
-                //     document
-                //         .getElementById("userInfo")
-                //         .classList.remove("hidden");
-                //     document.getElementById("currentUser").textContent =
-                //         username;
-
-                //     if (isAdmin) {
-                //         document
-                //             .getElementById("adminSection")
-                //             .classList.remove("hidden");
-                //     }
-
-                //     showStatus("Login successful!", "success");
-                //     loadPhotos();
-                // } else {
-                //     showStatus("Invalid credentials!", "error");
-                // }
             }
 
             function logout() {
-                currentUser = null;
-                secretPrivilege = false;
                 isAdmin = false;
+                secretPrivilege = false;
 
                 document
                     .getElementById("authSection")
@@ -439,7 +411,15 @@
                 document.getElementById("username").value = "";
                 document.getElementById("password").value = "";
 
-                showStatus("Logged out successfully!", "success");
+                const logoutMessage = document.getElementById("logout_mess");
+
+                logoutMessage.innerHTML = "Logged out successfully!!";
+                logoutMessage.style.color = "#4CAF50";
+                setTimeout(() => {
+                    logoutMessage.innerHTML = "";
+                    logoutMessage.style.color = "";
+                }, 3000);
+                window.location.reload();
             }
 
             function handleFileSelect(event) {
@@ -503,10 +483,6 @@
             // }
 
             async function uploadFiles(files) {
-                // if (!isAdmin) {
-                //     showStatus('Only admins can upload photos!', 'error');
-                //     return;
-                // }
                 if (!secretPrivilege) {
                     showStatus(
                         "Only secretPrivilege holder can upload photos!",
@@ -527,7 +503,6 @@
                 }
 
                 showStatus("Uploading photos...", "loading");
-
                 try {
                     const response = await fetch(
                         "http://localhost:3001/api/upload",
@@ -544,6 +519,7 @@
                             `${data.files.length} photo(s) uploaded successfully to uploads directory!`,
                             "success",
                         );
+                        console.log("[+] INitial image-ID : ", data.images);
                         loadPhotos();
                         document.getElementById("fileInput").value = "";
                     } else {
@@ -558,7 +534,6 @@
             }
 
             async function loadPhotos() {
-                console.log("[+] Load photo being called");
                 try {
                     const response = await fetch(
                         "http://localhost:3001/api/images",
@@ -566,8 +541,10 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        console.log("[data.successs]");
-                        console.log("images :  ", data.images);
+                        console.log(
+                            "after fetched images::ID :  ",
+                            data.images,
+                        );
                         displayPhotos(data.images);
                     } else {
                         showStatus("Failed to load photos", "error");
@@ -586,79 +563,62 @@
                     return;
                 }
 
-                photos.map((photo) => {
-                    console.log("photo.path : ", photo.serverURL);
-                    console.log("id : ", photo.id);
-                });
-
-                // let html = "";
-
-                // for (const photo of photos) {
-                //     html += `
-                //     <div class="photo-card">
-                //       <img src="${photo.serverURL + photo.path}" alt="${photo.originalName}" onclick="openModal('${photo.serverURL + photo.path}')">
-                //       <div class="photo-info">
-                //         <h4>${photo.filename}</h4>
-                //         <p><small>📅 ${photo.uploadDate} | 📏 ${photo.size}</small></p>
-                //         <div class="photo-actions">
-                //           <button class="btn" onclick="${downloadPhoto(photo.serverURL + photo.path, photo.originalName)}">
-                //             📥 Download
-                //           </button>
-                //           ${
-                //               secretPrivilege
-                //                   ? `<button class="btn btn-danger" onclick="deletePhoto(${photo.id})">🗑️ Delete</button>`
-                //                   : ""
-                //           }
-                //         </div>
-                //       </div>
-                //     </div>
-                //   `;
+                // for (let i = 0; i < photos.length; i++) {
+                //     storeImageID.append(photos[i].id);
                 // }
 
-                // grid.innerHTML = html;
-                //
-                //
+                // grid.innerHTML = photos.map(photo => \`
+                //                 <div class="photo-card">
+                //                     <img src="\${photo.path}" alt="\${photo.originalName}" onclick="openModal('\${photo.path}')">
+                //                     <div class="photo-info">
+                //                         <h4>\${photo.originalName}</h4>
+                //                         <p><small>📅 \${photo.uploadDate} | 📏 \${photo.size}</small></p>
+                //                         <div class="photo-actions">
+                //                             <button class="btn" onclick="downloadPhoto('\${photo.path}', '\${photo.originalName}')">
+                //                                 📥 Download
+                //                             </button>
+                //                             \${isAdmin ? \`<button class="btn btn-danger" onclick="deletePhoto('\${photo.filename}')">🗑️ Delete</button>\` : ''}
+                //                         </div>
+                //                     </div>
+                //                 </div>
+                //             \`).join('');
+
+                // grid.innerHTML = photos.map(photo => `
+                //                 <div class="photo-card">
+                //                     <img src="${photo.src}" alt="${photo.name}" onclick="openModal('${photo.src}')">
+                //                     <div class="photo-info">
+                //                         <h4>${photo.name}</h4>
+                //                         <p><small>📅 ${photo.uploadDate} | 📏 ${photo.size}</small></p>
+                //                         <div class="photo-actions">
+                //                             <button class="btn" onclick="downloadPhoto('${photo.src}', '${photo.name}')">
+                //                                 📥 Download
+                //                             </button>
+                //                             ${isAdmin ? `<button class="btn btn-danger" onclick="deletePhoto(${photo.id})">🗑️ Delete</button>` : ''}
+                //                         </div>
+                //                     </div>
+                //                 </div>
+                //             `).join('');
                 //
 
                 grid.innerHTML = photos
                     .map(
                         (photo) => `
-                                <div class="photo-card">
-                                    <img src="${photo.serverURL + photo.path}" alt="${photo.originalName}" onclick="openModal('${photo.serverURL + photo.path}')">
-                                    <div class="photo-info">
-                                        <h4>${photo.filename}</h4>
-                                        <p><small>📅 ${photo.uploadDate} | 📏 ${photo.size}</small></p>
-                                        <div class="photo-actions">
-                                            <button class="btn" onclick="${downloadPhoto(photo.serverURL + photo.path, photo.originalName)}">
-                                                📥 Download
-                                            </button>
-                                            ${secretPrivilege ? `<button class="btn btn-danger" onclick="deletePhoto(${photo.id})">🗑️ Delete</button>` : ""}
-                                        </div>
-                                    </div>
-                                </div>
-                        `,
+                  <div class="photo-card">
+                    <img src="${photo.serverURL + photo.path}" alt="${photo.filename}" onclick="openModal('${photo.serverURL + photo.path}')">
+                    <div class="photo-info">
+                      <h4>${photo.filename}</h4>
+                      <p><small>📅 ${photo.uploadDate} | 📏 ${photo.size}</small></p>
+                      <div class="photo-actions">
+                        <button class="btn" onclick="downloadPhoto('${photo.serverURL + photo.path}', '${photo.filename}')">
+                          📥 Download
+                        </button>
+                        ${secretPrivilege ? `<button class="btn btn-danger" onclick="deletePhoto('${photo.id}')"}>🗑️ Delete</button>` : ""}
+                      </div>
+                    </div>
+                  </div>
+                `,
                     )
                     .join("");
-
-                // grid.innerHTML = photos
-                //     .map(
-                //         (photo) => `
-                //                 <div class="photo-card">
-                //                     <img src="${photo.serverURL + photo.path}" alt="${photo.originalName}" onclick="openModal('${photo.serverURL + photo.path}')">
-                //                     <div class="photo-info">
-                //                         <h4>${photo.originalName}</h4>
-                //                         <p><small>📅 ${photo.uploadDate} | 📏 ${photo.size}</small></p>
-                //                         <div class="photo-actions">
-                //                             <button class="btn" onclick="downloadPhoto('${photo.serverURL + photo.path}', '${photo.originalName}')">
-                //                                 📥 Download
-                //                             </button>
-                //                             ${secretPrivilege ? `<button class="btn btn-danger" onclick="deletePhoto('${photo.filename}')">🗑️ Delete</button>` : ""}
-                //                         </div>
-                //                     </div>
-                //                 </div>
-                // `,
-                //     )
-                //     .join("");
             }
 
             function openModal(src) {
@@ -676,22 +636,20 @@
             function downloadPhoto(src, name) {
                 console.log("DOWNLOAD being executed..");
                 const link = document.createElement("a");
-                link.href = decodeURIComponent(src);
-                link.download = decodeURIComponent(name);
+                console.log("SRC : ", src);
+                // link.href = decodeURIComponent(src);
+                // link.download = decodeURIComponent(name);
+                link.href = src;
+                link.download = name || "download";
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 showStatus("Photo downloaded!", "success");
             }
 
-            function deletePhoto(id) {
-                // if (!isAdmin) {
-                //     showStatus(
-                //         "Only secretPrivilege holder can delete photos!",
-                //         "error",
-                //     );
-                //     return;
-                // }
+            async function deletePhoto(id) {
+                console.log("received ID : ", id);
+
                 if (!secretPrivilege) {
                     showStatus(
                         "Only secretPrivilege holder can delete photos!",
@@ -701,10 +659,28 @@
                 }
 
                 if (confirm("Are you sure you want to delete this photo?")) {
-                    photos = photos.filter((photo) => photo.id !== id);
-                    loadPhotos();
-                    showStatus("Photo deleted successfully!", "success");
+                    const delReq = await fetch(
+                        `http://127.0.0.1:3001/api/photos/${id}`,
+                        {
+                            method: "DELETE",
+                        },
+                    );
+
+                    const respo = await delReq.json();
+                    if (respo.success) {
+                        loadPhotos();
+                        showStatus("successfully deleted", "success");
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        // }, 3000);
+                    }
                 }
+
+                // if (confirm("Are you sure you want to delete this photo?")) {
+                //     photos = photos.filter((photo) => photo.id !== id);
+                //     loadPhotos();
+                //     showStatus("Photo deleted successfully!", "success");
+                // }
             }
 
             function showStatus(message, type) {
