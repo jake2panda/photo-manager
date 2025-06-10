@@ -9,7 +9,7 @@ const cors = require("cors");
 
 const app = express();
 
-const dbName = process.env.MONGODB_NAME;
+const dbName = process.env.MONGODB_DATABASE_NAME;
 const collectionName = process.env.MONGODB_COLLECTION;
 
 const regex = /^([^-]+-[^-]+)/;
@@ -68,6 +68,7 @@ app.post("/api/auth/signin", async (req, res) => {
     }
     const credentials = await getDatabaseEntry();
 
+
     if (username != credentials.username) {
       return res
         .status(800)
@@ -124,35 +125,9 @@ app.get("/api/images", (req, res) => {
       };
     });
 
-  // console.log("photos : ", imageFiles);
   res.json({ success: true, images: imageFiles });
 });
 
-// app.get("/api/photos", (req, res) => {
-//   try {
-//     const files = fs.readdirSync(uploadsDir);
-//     const photos = files
-//       .filter((file) => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
-//       .map((file) => {
-//         const filePath = path.join(uploadsDir, file);
-//         const stats = fs.statSync(filePath);
-
-//         return {
-//           id: file,
-//           filename: file,
-//           originalName: file,
-//           path: `/uploads/${file}`,
-//           size: Math.round(stats.size / 1024) + " KB",
-//           uploadDate: stats.birthtime.toLocaleDateString(),
-//         };
-//       });
-
-//     res.json({ success: true, photos });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-//
 function deleteFile(filePath) {
   try {
     fs.unlinkSync(filePath);
@@ -194,6 +169,21 @@ app.delete("/api/photos/:id", (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+});
+
+app.get("/download/:filename", (req, res) => {
+  const filepath = path.join(__dirname, "./uploads", req.params.filename);
+  fs.access(filepath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(4000).send("File not found!!!");
+    }
+  });
+  res.download(filepath, req.params.filename, (err) => {
+    if (err) {
+      console.log("DOwnload error : ", err);
+      res.status(5000).send("download failed!!!");
+    }
+  });
 });
 
 app.listen(3001, () => {
