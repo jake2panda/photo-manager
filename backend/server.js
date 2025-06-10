@@ -157,15 +157,6 @@ app.delete("/api/photos/:id", (req, res) => {
         .json({ success: false, message: "Unable to delete file" });
     }
 
-    // const filename =
-    // const filePath = path.join(uploadsDir, filename);
-
-    // if (fs.existsSync(filePath)) {
-    //   fs.unlinkSync(filePath);
-    //   res.json({ success: true, message: "Photo deleted successfully" });
-    // } else {
-    //   res.status(404).json({ success: false, message: "Photo not found" });
-    // }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
