@@ -345,7 +345,7 @@
 
             async function login() {
                 const res = await fetch(
-                    "http://localhost:3001/api/auth/signin",
+                    "https://imagesishere.onrender.com/api/auth/signin",
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -493,7 +493,7 @@
             async function loadPhotos() {
                 try {
                     const response = await fetch(
-                        "http://localhost:3001/api/images",
+                        "https://imagesishere.onrender.com/api/images",
                     );
                     const data = await response.json();
 
@@ -566,7 +566,7 @@
 
                 if (confirm("Are you sure you want to delete this photo?")) {
                     const delReq = await fetch(
-                        `http://localhost:3001/api/photos/${id}`,
+                        `https://imagesishere.onrender.com/api/photos/${id}`,
                         {
                             method: "DELETE",
                         },
