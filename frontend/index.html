@@ -408,10 +408,17 @@
                     logoutMessage.innerHTML = "";
                     logoutMessage.style.color = "";
                 }, 1000);
+<<<<<<< HEAD
 
 		setTimeout(() => {
                     window.location.reload();
                 }, 1000);
+=======
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+                //window.location.reload();
+>>>>>>> 25820ba (refreshing all files)
             }
 
             function handleFileSelect(event) {
@@ -553,6 +560,21 @@
                     window.location.href = src + `/download/${name}`;
                 }, 1000);
 
+<<<<<<< HEAD
+=======
+                // window.location.href = src;
+                // console.log("DOWNLOAD being executed..");
+                // const link = document.createElement("a");
+                // console.log("SRC : ", src);
+                // // link.href = decodeURIComponent(src);
+                // // link.download = decodeURIComponent(name);
+                // link.href = src;
+                // link.download = name || "download";
+                // document.body.appendChild(link);
+                // link.click();
+                // document.body.removeChild(link);
+                // showStatus("Photo downloaded!", "success");
+>>>>>>> 25820ba (refreshing all files)
             }
 
             async function deletePhoto(id) {

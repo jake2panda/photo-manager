@@ -38,6 +38,7 @@ const upload = multer({ storage: storage });
 
 async function getDatabaseEntry() {
   const uri = process.env.MONGO_URI;
+  console.log("uri : ", uri);
   const client = new MongoClient(uri);
 
   try {
@@ -68,6 +69,10 @@ app.post("/api/auth/signin", async (req, res) => {
     }
     const credentials = await getDatabaseEntry();
 
+<<<<<<< HEAD
+=======
+    console.log("credential :", credentials);
+>>>>>>> 25820ba (refreshing all files)
 
     if (username != credentials.username) {
       return res
